@@ -1,0 +1,15 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "IfEditedDoc";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome, upload your document then I will check if it has been photoshoped</h1>
+    <p><form method="post" enctype="multipart/form-data" action="/Index/UploadFile">
+        <input type="file" name="uploadedFile" accept=".jpg, .png" />
+        <br>
+        <br>
+        <input type="submit" value="Upload file" />
+    </form></p>
+</div>

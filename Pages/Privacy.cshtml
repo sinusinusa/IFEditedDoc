@@ -1,0 +1,23 @@
+﻿@page
+@model PrivacyModel
+@{
+    ViewData["Title"] = "Info";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>This site check if document's image was edited in Photoshop
+</p>
+<p>Now It's using methods</p>
+<ul>
+    <li>Check if software meta tag contain information about any software. <br> 
+        JPG files contains information about editors where they have been edited or created.
+        <br/> I recommend to use only JPG files with all information about document in EXIF file! </li>
+    <li>Check if some parts of image vary greatly:
+        <ul>
+            <li>Cut your image on rectangles</li>
+            <li>Calculate mean color of every rectangle</li>
+            <li>Find differences between mean colors of rectangles</li>
+        </ul>
+        I recommend you take a closer look on highlighted parts of image.
+    </li>
+</ul>
