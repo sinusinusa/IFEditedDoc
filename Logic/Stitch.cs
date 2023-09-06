@@ -2,14 +2,16 @@
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using Emgu.CV.Util;
 
 
 namespace IFEditedDoc.Logic;
 
 public class Stitch : IClue
 {
-  public double colorDifferenceThreshold = 62;
-  //Исследуем изображение на наличие фрагментов из других изображений
+  public double colorDifferenceThreshold = 82; // Задайте пороговое значение
+  public int numRegions = 10; // Задайте количество частей
+  //Исследуем изображение на наличие подозрительных частей
   private Mat? formFileToMat(IFormFile _image)
   {
     try
@@ -36,41 +38,57 @@ public class Stitch : IClue
     {
       using (var image = formFileToMat(doc.image))
       {
-        int numRegions = 5; // Задайте количество частей
+        
         int rows = image.Rows / numRegions;
         int cols = image.Cols / numRegions;
-
+        Rectangle[] regionRectangles = new Rectangle[numRegions * numRegions];
         MCvScalar[] regionColors = new MCvScalar[numRegions * numRegions];
 
         for (int i = 0; i < numRegions; i++)
         {
           for (int j = 0; j < numRegions; j++)
           {
-            Rectangle roi = new Rectangle(j * cols, i * rows, cols, rows);
-            Mat region = new Mat(image, roi);
 
-            // Рассчет среднего значения цвета
-            MCvScalar meanColor = CvInvoke.Mean(region);
+              Rectangle roi = new Rectangle(j * cols, i * rows, cols, rows);
+              Mat region = new Mat(image, roi);
 
-            regionColors[i * numRegions + j] = meanColor;
+              // Рассчет среднего значения цвета
+              MCvScalar meanColor = CvInvoke.Mean(region);
 
-            Console.WriteLine($"Регион {i * numRegions + j + 1}:");
-            Console.WriteLine($"Средний цвет (BGR): B={meanColor.V0}, G={meanColor.V1}, R={meanColor.V2}");
-            Console.WriteLine($"Средний цвет: {(meanColor.V0+ meanColor.V1 + meanColor.V2)/3}");
+              regionColors[i * numRegions + j] = meanColor;
+              
+
+              Console.WriteLine($"Регион {i * numRegions + j + 1}:");
+              Console.WriteLine($"Средний цвет (BGR): B={meanColor.V0}, G={meanColor.V1}, R={meanColor.V2}");
+              Console.WriteLine($"Средний цвет: {(meanColor.V0 + meanColor.V1 + meanColor.V2) / 3}");
+              if (meanColor.V0 <= 245 && meanColor.V1 <= 245)
+              {
+                regionRectangles[i * numRegions + j] = roi;
+              }
+
           }
         }
+
+        Mat sus = doc.Suspects.ToMat();
+
         for (int i = 0; i < regionColors.Length; i++)
         {
-          for (int j = i+1; j < regionColors.Length; j++)
+          for (int j = 0; j < regionColors.Length; j++)
           {
-            double colorDifference = CalculateColorDifference(regionColors[i], regionColors[j]);
-            if (colorDifference > colorDifferenceThreshold)
+            if (regionRectangles[i].Height != 0 && regionRectangles[j].Height != 0)
             {
-              message += $"Regions {i + 1} and {j + 1} vary greatly.\n";
-              check = true;
+              double colorDifference = CalculateColorDifference(regionColors[i], regionColors[j]);
+              if (colorDifference > colorDifferenceThreshold)
+              {
+                message = $"Parts of document vary greatly.\n";
+                check = true;
+                CvInvoke.Rectangle(sus, regionRectangles[i], new MCvScalar(0, 0, 255, 10), 1);
+              }
             }
           }
         }
+
+        doc.Suspects = sus.ToBitmap();
       }
     }
     catch (Exception ex)
@@ -86,7 +104,51 @@ public class Stitch : IClue
   }
   static double CalculateColorDifference(MCvScalar color1, MCvScalar color2)
   {
-    double diff = Math.Sqrt(Math.Pow(color1.V0 - color2.V0, 2) + Math.Pow(color1.V1 - color2.V1, 2) + Math.Pow(color1.V2 - color2.V2, 2));
-    return diff;
+    // Создаем объекты Mat для хранения цветов
+    Mat matColor1 = new Mat(1, 1, DepthType.Cv8U, 3);
+    Mat matColor2 = new Mat(1, 1, DepthType.Cv8U, 3);
+
+    // Устанавливаем значения цветов
+    matColor1.SetTo(color1);
+    matColor2.SetTo(color2);
+
+    // Создаем объекты для хранения результата преобразования
+    Mat hsvColor1 = new Mat();
+    Mat hsvColor2 = new Mat();
+
+    // Преобразование цветов из BGR в HSV
+    CvInvoke.CvtColor(matColor1, hsvColor1, ColorConversion.Bgr2Hsv);
+    CvInvoke.CvtColor(matColor2, hsvColor2, ColorConversion.Bgr2Hsv);
+
+    // Извлекаем каналы Hue, Saturation и Value
+    Mat hue1 = new Mat();
+    Mat hue2 = new Mat();
+    CvInvoke.ExtractChannel(hsvColor1, hue1, 0); // Канал оттенка
+    CvInvoke.ExtractChannel(hsvColor2, hue2, 0);
+
+    Mat sat1 = new Mat();
+    Mat sat2 = new Mat();
+    CvInvoke.ExtractChannel(hsvColor1, sat1, 1); // Канал насыщенности
+    CvInvoke.ExtractChannel(hsvColor2, sat2, 1);
+
+    Mat val1 = new Mat();
+    Mat val2 = new Mat();
+    CvInvoke.ExtractChannel(hsvColor1, val1, 2); // Канал яркости
+    CvInvoke.ExtractChannel(hsvColor2, val2, 2);
+
+    // Рассчитываем различия в оттенке (Hue), насыщенности (Saturation) и яркости (Value)
+    Mat hueDifference = new Mat();
+    CvInvoke.AbsDiff(hue1, hue2, hueDifference);
+
+    Mat saturationDifference = new Mat();
+    CvInvoke.AbsDiff(sat1, sat2, saturationDifference);
+
+    Mat valueDifference = new Mat();
+    CvInvoke.AbsDiff(val1, val2, valueDifference);
+
+    // Вычисляем общую разницу на основе различий в оттенке, насыщенности и яркости
+    double totalDifference = CvInvoke.Sum(hueDifference).V0 + CvInvoke.Sum(saturationDifference).V0 + CvInvoke.Sum(valueDifference).V0;
+
+    return totalDifference;
   }
 }

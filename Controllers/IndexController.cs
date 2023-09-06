@@ -21,11 +21,11 @@ public class IndexController : Controller
       {
         toCheck.evidences.Add(check.getCheck(toCheck));
       }
-      return RedirectToAction("Success");
+      return RedirectToAction("");
     }
     else
     {
-      return RedirectToAction("Error");
+      return RedirectToAction("");
     }
   }
   // GET

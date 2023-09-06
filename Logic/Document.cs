@@ -22,6 +22,7 @@ public class Document
     }
     catch (Exception ex)
     {
-      Console.WriteLine("Не удалось сгенерировать документ вывода: "+ex.Message);
+      Console.WriteLine("Не удалось сгенерировать документ вывода: " + ex.Message);
     }
   }
+}

@@ -28,6 +28,7 @@ public class Meta : IClue
     catch (Exception ex)
     {
       Console.WriteLine($"Ошибка при чтении метаданных: {ex.Message}");
+      message = "It's not JPG file or there are no meta tags";
     }
     return new Evidence(check, message);
 
