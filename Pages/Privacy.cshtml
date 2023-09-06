@@ -5,9 +5,9 @@
 }
 <h1>@ViewData["Title"]</h1>
 
-<p>This site check if document's image was edited in Photoshop
+<p>This app check if document's image was edited in Photoshop
 </p>
-<p>Now It's using methods</p>
+<p>What I do:</p>
 <ul>
     <li>Check if software meta tag contain information about any software. <br> 
         JPG files contains information about editors where they have been edited or created.
@@ -15,9 +15,18 @@
     <li>Check if some parts of image vary greatly:
         <ul>
             <li>Cut your image on rectangles</li>
-            <li>Calculate mean color of every rectangle</li>
-            <li>Find differences between mean colors of rectangles</li>
+            <li>Calculate mean value of hue, saturation, lightness in every rectangle</li>
+            <li>Find differences between them and show to you most suspected parts</li>
         </ul>
-        I recommend you take a closer look on highlighted parts of image.
+        I recommend you take a closer look on bordered parts of image.
+    </li>
+    <li>Use Error level analysis:
+        <ul>
+            <li>Compress your photo</li>
+            <li>Making new photo with visual differences between original and compressed photo</li>
+            <li>Calculate maximal value of difference between them</li>
+            <li>
+                In a magical way, you will see how bumps, blur marks and objects that were superimposed in Photoshop appear on the document</li>
+        </ul>
     </li>
 </ul>

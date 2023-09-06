@@ -15,6 +15,7 @@ public class IndexController : Controller
       List<IClue> checkers = new List<IClue>
       {
         new Meta(),
+        new ELA(),
         new Stitch()
       };
       foreach (var check in checkers)

@@ -36,22 +36,25 @@ public class ELA : IClue
       using (var image = formFileToMat(doc.image))
       {
         // Сохраняем изображение с сжатием во временный файл
-        CvInvoke.Imwrite("temp.jpg", image, new KeyValuePair<ImwriteFlags, int>(ImwriteFlags.JpegQuality, 95));
+        CvInvoke.Imwrite("temp.jpg", image, new KeyValuePair<ImwriteFlags, int>(ImwriteFlags.JpegQuality, 90));
         using (var resavedImage = CvInvoke.Imread("temp.jpg", ImreadModes.AnyColor))
         {
           using (var elaImage = new Mat())
           {
             CvInvoke.AbsDiff(image, resavedImage, elaImage);
 
-            double minVal, maxVal;
-            int[] minIdx = new int[2];
-            int[] maxIdx = new int[2];
+            // Конвертируем ELA изображение в оттенки серого (grayscale)
+            CvInvoke.CvtColor(elaImage, elaImage, ColorConversion.Bgr2Gray);
 
-            CvInvoke.MinMaxIdx(elaImage, out minVal, out maxVal, minIdx, maxIdx);
+            double minVal = 0, maxVal = 0;
+            Point minLoc = new Point(), maxLoc = new Point();
+
+            CvInvoke.MinMaxLoc(elaImage, ref minVal, ref maxVal, ref minLoc, ref maxLoc);
 
             double maxDifference = maxVal;
             Console.WriteLine($"Максимальная разница: {maxDifference}");
-
+            // Усиливаем контраст ELA изображения
+            CvInvoke.Normalize(elaImage, elaImage, 0, 255, NormType.MinMax, DepthType.Cv8U);
             CvInvoke.Imshow("ELA", elaImage);
             CvInvoke.WaitKey(0);
           }

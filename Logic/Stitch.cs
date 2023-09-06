@@ -87,7 +87,8 @@ public class Stitch : IClue
             }
           }
         }
-
+        CvInvoke.Imshow("Stich", sus);
+        CvInvoke.WaitKey(0);
         doc.Suspects = sus.ToBitmap();
       }
     }
