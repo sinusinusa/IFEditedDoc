@@ -42,7 +42,7 @@ public class Stitch : IClue
         
         int rows = image.Rows / numRegions;
         int cols = image.Cols / numRegions;
-        Rectangle[] regionRectangles = new Rectangle[numRegions * numRegions];
+        System.Drawing.Rectangle[] regionRectangles = new System.Drawing.Rectangle[numRegions * numRegions];
         MCvScalar[] regionColors = new MCvScalar[numRegions * numRegions];
 
         for (int i = 0; i < numRegions; i++)
@@ -50,7 +50,7 @@ public class Stitch : IClue
           for (int j = 0; j < numRegions; j++)
           {
 
-              Rectangle roi = new Rectangle(j * cols, i * rows, cols, rows);
+            System.Drawing.Rectangle roi = new System.Drawing.Rectangle(j * cols, i * rows, cols, rows);
               Mat region = new Mat(image, roi);
 
               // Рассчет среднего значения цвета
@@ -92,7 +92,7 @@ public class Stitch : IClue
         {
           message = "Stitch: Look closely at the parts of the picture that are highlighted in red squares on the Stitch image. Maybe it's a sign of photoshop.";
         }
-        CvInvoke.PutText(sus, "Stitch", new Point(10, 30), FontFace.HersheyPlain, 1, new MCvScalar(0, 0, 0));
+        CvInvoke.PutText(sus, "Stitch", new System.Drawing.Point(10, 30), FontFace.HersheyPlain, 1, new MCvScalar(0, 0, 0));
         byte[] to_model;
         using (MemoryStream ms = new MemoryStream())
         {

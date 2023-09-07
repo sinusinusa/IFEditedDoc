@@ -1,6 +1,11 @@
-﻿namespace IFEditedDoc.Logic;
-using ExifLib;
+﻿
+using SixLabors.ImageSharp.Metadata.Profiles.Icc;
+
+namespace IFEditedDoc.Logic;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System.Drawing;
+using Image = Image;
 
 public class Meta : IClue
 {
@@ -13,14 +18,36 @@ public class Meta : IClue
     {
       using (var stream = doc.image.OpenReadStream())
       {
-        using (ExifReader reader = new ExifReader(stream))
+        using (Image image = Image.Load(stream))
         {
-          string photoshopInfo;
-          if (reader.GetTagValue(ExifTags.Software, out photoshopInfo))
+          if (doc.image.ContentType == "image/jpeg" || doc.image.ContentType == "image/jpg")
           {
-            check = photoshopInfo.Contains("Adobe Photoshop");
-            message = "Meta: Image was edited in " + photoshopInfo;
+            if (image.Metadata.ExifProfile != null)
+            {
+              var softwareTag = image.Metadata.ExifProfile.Values
+                .FirstOrDefault(value => value.Tag == ExifTag.Software);
+
+              if (softwareTag != null)
+              {
+                check = true; 
+                message = "Meta: Image was edited using software: " + softwareTag.ToString();
+              }
+            }
           }
+          if (doc.image.ContentType == "image/png")
+          {
+            if (image.Metadata.IccProfile != null)
+            {
+              var softwareTag = image.Metadata.IccProfile.Entries
+                .FirstOrDefault(value => value.TagSignature == IccProfileTag.ProfileDescription);
+              if (softwareTag != null)
+              {
+                check = true;
+                message = "Meta: Image was edited using software";
+              }
+            }
+          }
+
         }
       }
       
@@ -28,7 +55,7 @@ public class Meta : IClue
     catch (Exception ex)
     {
       Console.WriteLine($"Ошибка при чтении метаданных: {ex.Message}");
-      message = "It's not JPG file or there are no meta tags";
+      message = "Meta: It's not supported file or there are no meta tags";
     }
     return new Evidence(check, message);
 

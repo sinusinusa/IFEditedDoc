@@ -52,7 +52,7 @@ public class ELA : IClue
             CvInvoke.CvtColor(elaImage, elaImage, ColorConversion.Bgr2Gray);
 
             double minVal = 0, maxVal = 0;
-            Point minLoc = new Point(), maxLoc = new Point();
+            System.Drawing.Point minLoc = new System.Drawing.Point(), maxLoc = new System.Drawing.Point();
 
             CvInvoke.MinMaxLoc(elaImage, ref minVal, ref maxVal, ref minLoc, ref maxLoc);
 
@@ -61,7 +61,7 @@ public class ELA : IClue
             if (maxDifference > maxDifferenceThreshold)
             {
               CvInvoke.Normalize(elaImage, elaImage, 0, 120, NormType.MinMax, DepthType.Cv8U);
-              CvInvoke.PutText(elaImage, "ELA", new Point(10, 30), FontFace.HersheyPlain, 1,
+              CvInvoke.PutText(elaImage, "ELA", new System.Drawing.Point(10, 30), FontFace.HersheyPlain, 1,
                 new MCvScalar(255, 255, 255));
               byte[] to_model;
               using (MemoryStream ms = new MemoryStream())
@@ -73,6 +73,7 @@ public class ELA : IClue
               check = true;
               message = "ELA: Take a closer look at the picture elements you see in the ELA image. Maybe it's a sign of photoshop";
             }
+            File.Delete("temp.jpg");
           }
         }
       }
