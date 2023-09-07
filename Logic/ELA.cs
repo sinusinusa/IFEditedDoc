@@ -9,7 +9,7 @@ namespace IFEditedDoc.Logic;
 
 public class ELA : IClue
 {
-  public double maxDifferenceThreshold = 10;
+  public double maxDifferenceThreshold = 18;
   private Mat? formFileToMat(IFormFile _image)
   {
     try
