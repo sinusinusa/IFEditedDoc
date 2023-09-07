@@ -2,8 +2,8 @@
 
 public class Evidence
 {
-  public bool ifEdited;
-  public string message;
+  public bool ifEdited { get; }
+  public string message { get; }
 
   public Evidence(bool _ifedited, string mes)
   {

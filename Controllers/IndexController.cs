@@ -6,7 +6,7 @@ namespace IFEditedDoc.Controllers;
 public class IndexController : Controller
 {
   [HttpPost]
-  public IActionResult UploadFile(IFormFile uploadedFile)
+  public async Task<IActionResult> UploadFile(IFormFile uploadedFile)
   {
     if (uploadedFile != null && uploadedFile.Length > 0)
     {
@@ -22,7 +22,7 @@ public class IndexController : Controller
       {
         toCheck.evidences.Add(check.getCheck(toCheck));
       }
-      return RedirectToAction("");
+      return View("UploadResult", toCheck);
     }
     else
     {

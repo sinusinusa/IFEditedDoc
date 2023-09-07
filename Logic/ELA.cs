@@ -9,7 +9,7 @@ namespace IFEditedDoc.Logic;
 
 public class ELA : IClue
 {
-  public double maxDifferenceThreshold = 15;
+  public double maxDifferenceThreshold = 10;
   private Mat? formFileToMat(IFormFile _image)
   {
     try
@@ -30,7 +30,7 @@ public class ELA : IClue
   public Evidence getCheck(Document doc)
   {
     bool check = false;
-    string message = "ELA is not failed";
+    string message = "ELA is OK";
     try
     {
       using (var image = formFileToMat(doc.image))
@@ -41,6 +41,11 @@ public class ELA : IClue
         {
           using (var elaImage = new Mat())
           {
+            // Конвертируем входное изображение в формат RGB (если оно не RGB)
+            if (image.NumberOfChannels == 4)
+            {
+              CvInvoke.CvtColor(image, image, ColorConversion.Bgra2Bgr);
+            }
             CvInvoke.AbsDiff(image, resavedImage, elaImage);
 
             // Конвертируем ELA изображение в оттенки серого (grayscale)
@@ -53,10 +58,21 @@ public class ELA : IClue
 
             double maxDifference = maxVal;
             Console.WriteLine($"Максимальная разница: {maxDifference}");
-            // Усиливаем контраст ELA изображения
-            CvInvoke.Normalize(elaImage, elaImage, 0, 255, NormType.MinMax, DepthType.Cv8U);
-            CvInvoke.Imshow("ELA", elaImage);
-            CvInvoke.WaitKey(0);
+            if (maxDifference > maxDifferenceThreshold)
+            {
+              CvInvoke.Normalize(elaImage, elaImage, 0, 120, NormType.MinMax, DepthType.Cv8U);
+              CvInvoke.PutText(elaImage, "ELA", new Point(10, 30), FontFace.HersheyPlain, 1,
+                new MCvScalar(255, 255, 255));
+              byte[] to_model;
+              using (MemoryStream ms = new MemoryStream())
+              {
+                elaImage.ToBitmap().Save(ms, ImageFormat.Jpeg);
+                to_model = ms.ToArray();
+              }
+              doc.Suspects.Add(to_model);
+              check = true;
+              message = "ELA: Take a closer look at the picture elements you see in the ELA image. Maybe it's a sign of photoshop";
+            }
           }
         }
       }

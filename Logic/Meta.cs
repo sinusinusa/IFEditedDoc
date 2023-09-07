@@ -19,7 +19,7 @@ public class Meta : IClue
           if (reader.GetTagValue(ExifTags.Software, out photoshopInfo))
           {
             check = photoshopInfo.Contains("Adobe Photoshop");
-            message = "Was edited in " + photoshopInfo;
+            message = "Meta: Image was edited in " + photoshopInfo;
           }
         }
       }

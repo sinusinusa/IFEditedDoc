@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Drawing.Imaging;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -69,7 +70,7 @@ public class Stitch : IClue
           }
         }
 
-        Mat sus = doc.Suspects.ToMat();
+        Mat sus = formFileToMat(doc.image);
 
         for (int i = 0; i < regionColors.Length; i++)
         {
@@ -80,16 +81,25 @@ public class Stitch : IClue
               double colorDifference = CalculateColorDifference(regionColors[i], regionColors[j]);
               if (colorDifference > colorDifferenceThreshold)
               {
-                message = $"Parts of document vary greatly.\n";
                 check = true;
                 CvInvoke.Rectangle(sus, regionRectangles[i], new MCvScalar(0, 0, 255, 10), 1);
               }
             }
           }
         }
-        CvInvoke.Imshow("Stich", sus);
-        CvInvoke.WaitKey(0);
-        doc.Suspects = sus.ToBitmap();
+
+        if (check)
+        {
+          message = "Stitch: Look closely at the parts of the picture that are highlighted in red squares on the Stitch image. Maybe it's a sign of photoshop.";
+        }
+        CvInvoke.PutText(sus, "Stitch", new Point(10, 30), FontFace.HersheyPlain, 1, new MCvScalar(0, 0, 0));
+        byte[] to_model;
+        using (MemoryStream ms = new MemoryStream())
+        {
+          sus.ToBitmap().Save(ms, ImageFormat.Jpeg);
+          to_model = ms.ToArray();
+        }
+        doc.Suspects.Add(to_model);
       }
     }
     catch (Exception ex)

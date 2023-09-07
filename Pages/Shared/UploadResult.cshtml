@@ -1,0 +1,38 @@
+﻿@model IFEditedDoc.Logic.Document
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Result</title>
+</head>
+<body>
+<div class="container-fluid">
+    <h1>Upload Result</h1>
+        
+    <p>Analysis of your image yielded the following:</p>
+    <ul>
+        @foreach (var evidence in Model.evidences)
+        {
+            <li>@evidence.message</li>
+            @if (evidence.ifEdited)
+            {
+                <span class="text-danger">Maybe it's been photoshoped</span>
+            }
+        }
+    </ul>
+        
+    <div class="row">
+        @foreach (var suspect in Model.Suspects)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <img src="data:image/jpeg;base64,@Convert.ToBase64String(suspect)" class="card-img-top" alt="Image">
+                </div>
+            </div>
+        }
+    </div>
+    <p class="text-danger">This is only an approximate analysis, better contact the experts.</p>
+</div>
+
+</body>
+</html>
